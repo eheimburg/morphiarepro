@@ -1,8 +1,10 @@
 package com.foo;
 
-@dev.morphia.annotations.Entity(value="MyEntity")
+import dev.morphia.annotations.Entity;
+
+@Entity(value="MyEntity")
 public class MyPlayer extends MyEntity {
     public MyPlayer() {
-        super("WTF");
+        super();
     }
 }
