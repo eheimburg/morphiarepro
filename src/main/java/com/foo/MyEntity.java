@@ -1,7 +1,25 @@
 package com.foo;
 
-import dev.morphia.annotations.Entity;
+import com.mongodb.WriteConcern;
 
-@Entity
+import dev.morphia.annotations.Id;
+import dev.morphia.annotations.Indexed;
+
+@dev.morphia.annotations.Entity
 public class MyEntity {
+    public @Id long id;
+    @Indexed protected String myName;
+
+    protected MyEntity(String name) {
+        myName = name;
+    }
+
+    public void setName(String name) {
+        myName = name;
+    }
+
+    public String getName() {
+        return myName;
+    }
+
 }

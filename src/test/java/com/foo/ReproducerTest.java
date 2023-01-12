@@ -3,10 +3,18 @@ package com.foo;
 import com.antwerkz.bottlerocket.BottleRocket;
 import com.antwerkz.bottlerocket.BottleRocketTest;
 import com.github.zafarkhaja.semver.Version;
-import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.WriteConcern;
+import com.mongodb.client.MongoClient;
+
 import dev.morphia.Datastore;
+import dev.morphia.InsertOneOptions;
 import dev.morphia.Morphia;
+import dev.morphia.query.experimental.filters.Filters;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
@@ -19,6 +27,8 @@ public class ReproducerTest extends BottleRocketTest {
         MongoDatabase database = getDatabase();
         database.drop();
         datastore = Morphia.createDatastore(mongo, getDatabase().getName());
+        
+        datastore.getMapper().map(MyEntity.class, MyPlayer.class);
     }
 
     @NotNull
@@ -35,6 +45,14 @@ public class ReproducerTest extends BottleRocketTest {
 
     @Test
     public void reproduce() {
+        MyPlayer p = new MyPlayer();
+        p.id = 1;
+        p.setName("Bob");
+        datastore.save(p, new InsertOneOptions().writeConcern(WriteConcern.ACKNOWLEDGED));
+
+        MyEntity pp = datastore.find(MyEntity.class).filter(Filters.eq("myName", "Bob")).first();
+        assertNotNull(pp);
+        assertTrue(pp.getName().equals("Bob"));
     }
 
 }
