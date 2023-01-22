@@ -8,10 +8,14 @@ import com.mongodb.client.MongoClient;
 
 import dev.morphia.Datastore;
 import dev.morphia.Morphia;
+import dev.morphia.mapping.DateStorage;
+import dev.morphia.mapping.DiscriminatorFunction;
+import dev.morphia.mapping.MapperOptions;
+import dev.morphia.mapping.NamingStrategy;
 import dev.morphia.query.experimental.filters.Filters;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,9 +29,17 @@ public class ReproducerTest extends BottleRocketTest {
         MongoClient mongo = getMongoClient();
         MongoDatabase database = getDatabase();
         database.drop();
-        datastore = Morphia.createDatastore(mongo, getDatabase().getName());
         
-        datastore.getMapper().map(MyEntity.class, MyPlayer.class);
+        MapperOptions options = MapperOptions.builder()
+            .discriminatorKey("className")
+            .discriminator(DiscriminatorFunction.className())
+            .collectionNaming(NamingStrategy.identity())
+            .propertyNaming(NamingStrategy.identity())
+            .dateStorage(DateStorage.SYSTEM_DEFAULT)
+            .enablePolymorphicQueries(true)
+            .build();
+            datastore = Morphia.createDatastore(mongo, getDatabase().getName(), options);
+            datastore.getMapper().map(MyEntity.class, MyPlayer.class);
     }
 
     @NotNull
@@ -45,13 +57,13 @@ public class ReproducerTest extends BottleRocketTest {
     @Test
     public void reproduce() {
         MyPlayer p = new MyPlayer();
-        p.id = 1;
+        //p.identifier = 1L;
         p.myName = "Bob";
         datastore.save(p);
 
-        MyEntity pp = datastore.find(MyEntity.class).filter(Filters.eq("myName", "Bob")).first();
+        MyEntity pp = datastore.find("MyEntity", MyEntity.class).filter(Filters.eq("myName", "Bob")).first();
         assertNotNull(pp);
-        assertTrue(pp.myName.equals("Bob"));
+        assertEquals("Bob", pp.myName);
     }
 
 }

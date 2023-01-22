@@ -6,7 +6,7 @@ import dev.morphia.annotations.Indexed;
 
 @Entity
 public class MyEntity {
-    public @Id long id;
+    public @Id Long identifier;
     @Indexed protected String myName;
 
     public MyEntity() {}
